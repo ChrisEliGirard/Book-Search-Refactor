@@ -6,6 +6,8 @@ import {
   Row,
   Col
 } from 'react-bootstrap';
+import { useQuery } from '@apollo/client';
+import { GET_ME } from '../utils/queries';
 
 import { getMe, deleteBook } from '../utils/API';
 import Auth from '../utils/auth';
