@@ -6,13 +6,14 @@ import {
   Row,
   Col
 } from 'react-bootstrap';
-import { useQuery } from '@apollo/client';
-import { GET_ME } from '../utils/queries';
+import { useQuery, useMutation } from '@apollo/client';
+import { DELETE_BOOK } from '../utils/mutations';
+import { GET_USER } from '../utils/queries';
 
-import { getMe, deleteBook } from '../utils/API';
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
 
+// SavedBooks component is the page that displays all of the saved books
 const SavedBooks = () => {
   const [userData, setUserData] = useState({});
 
