@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ApolloClient, ApolloProvider, InMemoryCache, createHttpLink } from '@apollo/client';
+import { ApolloClient, ApolloProvider, InMemoryCache, createHttpLink, setContext } from '@apollo/client';
 
 import SearchBooks from './pages/SearchBooks';
 import SavedBooks from './pages/SavedBooks';

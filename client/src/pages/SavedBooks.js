@@ -17,33 +17,23 @@ import { removeBookId } from '../utils/localStorage';
 const SavedBooks = () => {
   const [userData, setUserData] = useState({});
 
-  // use this to determine if `useEffect()` hook needs to run again
-  const userDataLength = Object.keys(userData).length;
+  // useQuery hook to make query request for user data
+  const { loading, data } = useQuery(GET_USER);
 
+  // Delete book mutation to remove a book from the user's saved books
+  const [deleteBook, { error }] = useMutation(DELETE_BOOK);
+
+  // Write a useEffect() hook that will execute the GET_USER query on load and save it to userData state variable
   useEffect(() => {
-    const getUserData = async () => {
-      try {
-        const token = Auth.loggedIn() ? Auth.getToken() : null;
+    // if data isn't here yet, do nothing
+    if (!data) {
+      return false;
+    }
+    // if data is here, store it in userData
+    setUserData(data.user);
+    // add userData to dependency array so this effect only runs once at mount
+  }, [data, loading]);
 
-        if (!token) {
-          return false;
-        }
-
-        const response = await getMe(token);
-
-        if (!response.ok) {
-          throw new Error('something went wrong!');
-        }
-
-        const user = await response.json();
-        setUserData(user);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    getUserData();
-  }, [userDataLength]);
 
   // create function that accepts the book's mongo _id value as param and deletes the book from the database
   const handleDeleteBook = async (bookId) => {
@@ -54,14 +44,13 @@ const SavedBooks = () => {
     }
 
     try {
-      const response = await deleteBook(bookId, token);
+      const { data } = await deleteBook({ variables: { bookId: bookId }});
 
-      if (!response.ok) {
+      if (!data) {
         throw new Error('something went wrong!');
       }
-
-      const updatedUser = await response.json();
-      setUserData(updatedUser);
+      // set new user data to the state after the book has been deleted from the database
+      setUserData(data.user);
       // upon success, remove book's id from localStorage
       removeBookId(bookId);
     } catch (err) {
@@ -70,7 +59,7 @@ const SavedBooks = () => {
   };
 
   // if data isn't here yet, say so
-  if (!userDataLength) {
+  if (!loading) {
     return <h2>LOADING...</h2>;
   }
 
