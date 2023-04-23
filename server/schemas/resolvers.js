@@ -19,23 +19,20 @@ const resolvers = {
 
   Mutation: {
     // Create A New User
-    addUser: async (parent, args, context) => {
-      const newUser = await User.create(args);
-      const token = signToken(newUser);
-      return { token, newUser};
+    addUser: async (parent, {username, email, password}, context) => {
+      console.log(username, email, password);
+      const { user } = await User.create({username, email, password});
+      console.log(user);
+      const token = signToken(user);
+      return { token, user };
     },
     // Login User by username or email and verify that the input password matches the record password
-    userLogin: async (parent, {username, email, password}, context) => {
-      let user = {}
-      if (username) {
-        user = await User.findOne({ username });
-      } else {
-        user = await User.findOne({ email });
-      }
+    userLogin: async (parent, {email, password}) => {
+      const user = await User.findOne({ email });
 
       // No User is Found throw generic error
       if (!user) {
-        throw new AuthenticationError("Username/Email and Password do not match any Records")
+        throw new AuthenticationError("Email and Password do not match any Records")
       }
 
       // Checking if Entered password matched Saved Password, Returns a Boolean

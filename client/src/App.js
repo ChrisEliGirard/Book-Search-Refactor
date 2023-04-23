@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ApolloClient, ApolloProvider, InMemoryCache, createHttpLink, setContext } from '@apollo/client';
+import { ApolloClient, ApolloProvider, InMemoryCache, createHttpLink} from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
 
 import SearchBooks from './pages/SearchBooks';
 import SavedBooks from './pages/SavedBooks';
@@ -13,23 +14,22 @@ const httpLink = createHttpLink({
 });
 
 // Attach the authorization token to the headers if it exists
-const authorizeLink = new ApolloLink((operation, forward) => {
+const authLink = setContext((_, { headers }) => {
+  // Grab the token from local storage
   const token = localStorage.getItem('id_token');
-  if (token) {
-    operation.setContext({
-      headers: {
-        authorization: token ? `Bearer ${token}` : '',
-      },
-    });
+  return {
+    // Send the token to our GraphQL API as a bearer token
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : '',
+    }
   };
-  // Call the next link in the middleware chain.
-  return forward(operation);
 });
 
 // Create a new Apollo client
 const client = new ApolloClient({
   // Set up our client to execute the `authorizeLink` middleware prior to making the request to our GraphQL API
-  link: authorizeLink.concat(httpLink),
+  link: authLink.concat(httpLink),
   // Initialize our local Cache
   cache: new InMemoryCache(),
 });
