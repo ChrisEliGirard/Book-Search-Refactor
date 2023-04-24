@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Card,
@@ -20,20 +20,11 @@ const SavedBooks = () => {
   // useQuery hook to make query request for user data
   const { loading, data } = useQuery(GET_USER);
 
+    // set state for userData after the data loads
+    const user = data?.user || {};
+
   // Delete book mutation to remove a book from the user's saved books
   const [deleteBook, { error }] = useMutation(DELETE_BOOK);
-
-  // Write a useEffect() hook that will execute the GET_USER query on load and save it to userData state variable
-  useEffect(() => {
-    // if data isn't here yet, do nothing
-    if (!data) {
-      return false;
-    }
-    // if data is here, store it in userData
-    setUserData(data.user);
-    // add userData to dependency array so this effect only runs once at mount
-  }, [data, loading]);
-
 
   // create function that accepts the book's mongo _id value as param and deletes the book from the database
   const handleDeleteBook = async (bookId) => {

@@ -6,8 +6,10 @@ const resolvers = {
   Query: {
     // Find the Logged In User
     user: async (parent, args, context) => {
+      console.log(context)
       if (context.user) {
-        return await User.findOne({ _id: context.user._id });
+        const user = await User.findOne({ _id: context.user._id }).populate("savedBooks");
+        console.log(user);
       } else {
       throw new AuthenticationError("User Not Logged In");
     }},
@@ -19,27 +21,26 @@ const resolvers = {
 
   Mutation: {
     // Create A New User
-    addUser: async (parent, {username, email, password}, context) => {
-      console.log(username, email, password);
-      const { user } = await User.create({username, email, password});
+    addUser: async (parent, args) => {
+      const user = await User.create(args);
       console.log(user);
       const token = signToken(user);
       return { token, user };
     },
     // Login User by username or email and verify that the input password matches the record password
-    userLogin: async (parent, {email, password}) => {
-      const user = await User.findOne({ email });
-
+    userLogin: async (parent, args) => {
+      const user = await User.findOne({email: args.email});
       // No User is Found throw generic error
       if (!user) {
-        throw new AuthenticationError("Email and Password do not match any Records")
+        throw new AuthenticationError("Username/Email and Password do not match any Records")
       }
 
       // Checking if Entered password matched Saved Password, Returns a Boolean
-      const correctPassword = await user.isCorrectPassword(password);
+      const correctPassword = await user.isCorrectPassword(args.password);
 
       // If passwords match sign the user a new token and return
       if (correctPassword) {
+        console.log(user)
         const token = signToken(user);
         return { token, user };
       } else {
@@ -49,11 +50,13 @@ const resolvers = {
     },
 
     // If user is logged in find user and add book to users books array
-    addBook: async (parent, { book }, context) => {
+    addBook: async (parent, args, context) => {
+      console.log(args);
+      console.log(context);
       if (context.user) {
         const updatedUserBooks = await User.findOneAndUpdate(
-          {_id: context.user._id },
-          { $addToSet: { savedBooks: book }},
+          { _id: context.user._id },
+          { $addToSet: { savedBooks: args.bookData }},
           { 
             new: true, 
             runValidators: true 
@@ -66,11 +69,12 @@ const resolvers = {
     },
 
     // If user is logged in find user and pull the book from the users array
-    deleteBook: async (parent, { book }, context) => {
+    deleteBook: async (parent, { bookId }, context) => {
+      console.log(bookId);
       if (context.user) {
         const updatedUserBooks = await User.findOneAndUpdate(
           {_id: context.user._id },
-          { $pull: { savedBooks: { bookId: book.bookId }}},
+          { $pull: { savedBooks: { bookId: bookId }}},
           { new: true }
         );
         return updatedUserBooks;

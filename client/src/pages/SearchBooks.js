@@ -21,9 +21,9 @@ const SearchBooks = () => {
   const [searchInput, setSearchInput] = useState('');
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
+  // Create a mutation hook for the ADD_BOOK mutation
+  const [addBook, { error }] = useMutation(ADD_BOOK);
 
-  // set up mutation hook for add book functionality
-  const [addBook, error] = useMutation(ADD_BOOK);
 
   // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
   // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
@@ -50,9 +50,10 @@ const SearchBooks = () => {
 
       const bookData = items.map((book) => ({
         bookId: book.id,
-        authors: book.volumeInfo.authors || ['No author to display'],
         title: book.volumeInfo.title,
+        authors: book.volumeInfo.authors || ['No author to display'],
         description: book.volumeInfo.description,
+        link: book.volumeInfo.infoLink,
         image: book.volumeInfo.imageLinks?.thumbnail || '',
       }));
 
@@ -76,16 +77,16 @@ const SearchBooks = () => {
     }
 
     try {
-      const response = await addBook(bookToSave, token);
+      const { data } = await addBook({ variables: { bookData: bookToSave }});
 
-      if (!response.ok) {
+      if (!data) {
         throw new Error('something went wrong!');
       }
 
       // if book successfully saves to user's account, save book id to state
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);
     } catch (err) {
-      console.error(err);
+      console.error(err, error);
     }
   };
 
