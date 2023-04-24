@@ -5,16 +5,16 @@ const { signToken } = require("../utils/auth");
 const resolvers = {
   Query: {
     // Find the Logged In User
-    user: async (parent, args, context) => {
-      console.log(context)
+    me: async (parent, args, context) => {
       if (context.user) {
-        const user = await User.findOne({ _id: context.user._id }).populate("savedBooks");
+        const user = await User.findOne({ _id: context.user._id });
         console.log(user);
+        return user;
       } else {
       throw new AuthenticationError("User Not Logged In");
     }},
     // Find a Searched User
-    otherUser: async (parent, { username }) => {
+    user: async (parent, { username }) => {
       return await User.findOne({ username });
     },
   },
@@ -50,13 +50,12 @@ const resolvers = {
     },
 
     // If user is logged in find user and add book to users books array
-    addBook: async (parent, args, context) => {
-      console.log(args);
+    addBook: async (parent, { book }, context) => {
       console.log(context);
       if (context.user) {
         const updatedUserBooks = await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $addToSet: { savedBooks: args.bookData }},
+          { $addToSet: { savedBooks: book }},
           { 
             new: true, 
             runValidators: true 

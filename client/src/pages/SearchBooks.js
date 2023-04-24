@@ -8,8 +8,8 @@ import {
   Row
 } from 'react-bootstrap';
 import { useMutation } from '@apollo/client';
-import { ADD_BOOK } from '../utils/mutations';
 
+import { ADD_BOOK } from '../utils/mutations';
 import Auth from '../utils/auth';
 import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
@@ -53,14 +53,14 @@ const SearchBooks = () => {
         title: book.volumeInfo.title,
         authors: book.volumeInfo.authors || ['No author to display'],
         description: book.volumeInfo.description,
-        link: book.volumeInfo.infoLink,
+        link: book.volumeInfo.infoLink || '',
         image: book.volumeInfo.imageLinks?.thumbnail || '',
       }));
 
       setSearchedBooks(bookData);
       setSearchInput('');
     } catch (err) {
-      console.error(err, error);
+      console.error(err);
     }
   };
 
@@ -68,7 +68,7 @@ const SearchBooks = () => {
   const handleSaveBook = async (bookId) => {
     // find the book in `searchedBooks` state by the matching id
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
-
+    console.log(bookToSave);
     // get token
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
@@ -77,7 +77,7 @@ const SearchBooks = () => {
     }
 
     try {
-      const { data } = await addBook({ variables: { bookData: bookToSave }});
+      const { data } = await addBook({ variables: { book: bookToSave }});
 
       if (!data) {
         throw new Error('something went wrong!');
@@ -86,7 +86,7 @@ const SearchBooks = () => {
       // if book successfully saves to user's account, save book id to state
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);
     } catch (err) {
-      console.error(err, error);
+      console.error(err);
     }
   };
 
@@ -126,28 +126,30 @@ const SearchBooks = () => {
         <Row>
           {searchedBooks.map((book) => {
             return (
-              <Col md="4">
-                <Card key={book.bookId} border='dark'>
-                  {book.image ? (
-                    <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' />
-                  ) : null}
-                  <Card.Body>
-                    <Card.Title>{book.title}</Card.Title>
-                    <p className='small'>Authors: {book.authors}</p>
-                    <Card.Text>{book.description}</Card.Text>
-                    {Auth.loggedIn() && (
-                      <Button
-                        disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
-                        className='btn-block btn-info'
-                        onClick={() => handleSaveBook(book.bookId)}>
-                        {savedBookIds?.some((savedBookId) => savedBookId === book.bookId)
-                          ? 'This book has already been saved!'
-                          : 'Save this Book!'}
-                      </Button>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
+              <React.Fragment key={book.bookId}>
+                <Col md="4">
+                  <Card key={book.bookId} border='dark'>
+                    {book.image ? (
+                      <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' />
+                    ) : null}
+                    <Card.Body>
+                      <Card.Title>{book.title}</Card.Title>
+                      <p className='small'>Authors: {book.authors}</p>
+                      <Card.Text>{book.description}</Card.Text>
+                      {Auth.loggedIn() && (
+                        <Button
+                          disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
+                          className='btn-block btn-info'
+                          onClick={() => handleSaveBook(book.bookId)}>
+                          {savedBookIds?.some((savedBookId) => savedBookId === book.bookId)
+                            ? 'This book has already been saved!'
+                            : 'Save this Book!'}
+                        </Button>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </React.Fragment>
             );
           })}
         </Row>

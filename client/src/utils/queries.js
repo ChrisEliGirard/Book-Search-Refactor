@@ -1,38 +1,36 @@
 import { gql } from '@apollo/client';
 
 export const GET_USER = gql`
-  query user {
-    user {
-      _id
-      username
-      email
-      bookCount
-      savedBooks {
-        bookId
-        title
-        authors
-        description
-        link
-        image
-      }
+query me {
+  me {
+    _id
+    username
+    savedBooks {
+      bookId
+      title
+      authors
+      description
+      image
+      link
     }
   }
+}
 `;
 
 export const GET_OTHER_USER = gql`
-  query otherUser($username: String!) {
-    otherUser(username: $username) {
-      _id
-      username
-      bookCount
-      savedBooks {
-        bookId
-        title
-        authors
-        description
-        link
-        image
-      }
+query user($username: String!) {
+  user(username: $username) {
+    _id
+    username
+    email
+    savedBooks {
+      bookId
+      title
+      authors
+      description
+      image
+      link
     }
   }
+}
 `;
